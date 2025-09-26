@@ -1,0 +1,45 @@
+# Build results
+bin/
+obj/
+Debug/
+Release/
+x64/
+x86/
+
+# Visual Studio files
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider files
+.idea/
+
+# ReSharper files
+*.ReSharper*
+*_ReSharper.*
+
+# NuGet packages
+packages/
+*.nupkg
+*.snupkg
+
+# Visual Studio Code
+.vscode/
+
+# Logs and databases
+*.log
+*.cache
+*.dbmdl
+*.bak
+*.backup
+
+# Publish folders
+publish/
+
+# Others
+*.pdb
+*.opendb
+*.pidb
+*.svclog
