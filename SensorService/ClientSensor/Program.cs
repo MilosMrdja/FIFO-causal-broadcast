@@ -27,6 +27,7 @@ namespace ClientSensor
                 using (var client = new SensorClient(sensorId))
                 {
                     client.Connect();
+                    client.StartSendingMeasurements();
 
                     Console.WriteLine("Press any key to stop...");
                     Console.ReadKey();
