@@ -43,6 +43,12 @@ namespace Common
             return new VectorClock(_clock);
         }
 
+        // Vraca listu svih sensor ID-jeva
+        public IEnumerable<int> GetSensorIds()
+        {
+            return _clock.Keys.ToList();
+        }
+
         public override string ToString()
         {
             return "[" + string.Join(", ", _clock.OrderBy(kv => kv.Key).Select(kv => $"{kv.Key}:{kv.Value}")) + "]";
