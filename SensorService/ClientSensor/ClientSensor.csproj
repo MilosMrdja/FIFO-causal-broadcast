@@ -49,5 +49,19 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Common\Common.csproj">
+      <Project>{55bcf3fc-2222-4792-bbed-242320dd1ba7}</Project>
+      <Name>Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Middleware\Middleware.csproj">
+      <Project>{1dc37638-679f-4be7-aead-71d256e11266}</Project>
+      <Name>Middleware</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SensorService\SensorService.csproj">
+      <Project>{787f2add-2b4e-43eb-b5b2-c76960a3f271}</Project>
+      <Name>SensorService</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -5,29 +5,73 @@ using System.Runtime.Serialization;
 using System.ServiceModel;
 using System.ServiceModel.Web;
 using System.Text;
+using Common;
 
 namespace SensorService
 {
-    // NOTE: You can use the "Rename" command on the "Refactor" menu to change the class name "Service1" in code, svc and config file together.
-    // NOTE: In order to launch WCF Test Client for testing this service, please select Service1.svc or Service1.svc.cs at the Solution Explorer and start debugging.
-    public class Service1 : IService1
+    [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single, ConcurrencyMode = ConcurrencyMode.Multiple)]
+    public class SensorService : ISensorService
     {
-        public string GetData(int value)
+        private Dictionary<int, ISensorCallback> _sensorCallbacks;
+        private object _lockObject = new object();
+
+        public SensorService()
         {
-            return string.Format("You entered: {0}", value);
+            _sensorCallbacks = new Dictionary<int, ISensorCallback>();
+            Console.WriteLine("Sensor Service initialized");
         }
 
-        public CompositeType GetDataUsingDataContract(CompositeType composite)
+        public void RegisterSensor(int sensorId)
         {
-            if (composite == null)
+            lock (_lockObject)
             {
-                throw new ArgumentNullException("composite");
+                var callback = OperationContext.Current.GetCallbackChannel<ISensorCallback>();
+                _sensorCallbacks[sensorId] = callback;
+                Console.WriteLine($"Sensor {sensorId} registered successfully");
             }
-            if (composite.BoolValue)
+        }
+
+        public void BroadcastMeasurement(Message message)
+        {
+            lock (_lockObject)
             {
-                composite.StringValue += "Suffix";
+                Console.WriteLine($"Broadcasting message from Sensor {message.SensorId}: {message.Measurement}");
+
+                var sensorsToRemove = new List<int>();
+
+                foreach (var sensor in _sensorCallbacks)
+                {
+                    if (sensor.Key == message.SensorId)
+                        continue;
+
+                    try
+                    {
+                        sensor.Value.OnMessageReceived(message);
+                        Console.WriteLine($"Sent to Sensor {sensor.Key}");
+                    }
+                    catch (CommunicationException)
+                    {
+                        Console.WriteLine($"Sensor {sensor.Key} is not reachable");
+                        sensorsToRemove.Add(sensor.Key);
+                    }
+                    catch (TimeoutException)
+                    {
+                        Console.WriteLine($"Timeout sending to Sensor {sensor.Key}");
+                        sensorsToRemove.Add(sensor.Key);
+                    }
+                }
+
+                // Remove disconnected sensors
+                foreach (var sensorId in sensorsToRemove)
+                {
+                    _sensorCallbacks.Remove(sensorId);
+                }
             }
-            return composite;
+        }
+
+        public void AcknowledgeMessage(Guid messageId, int sensorId)
+        {
+            Console.WriteLine($"Sensor {sensorId} acknowledged message {messageId}");
         }
     }
 }
