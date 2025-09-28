@@ -35,8 +35,6 @@ namespace SensorService
         {
             lock (_lockObject)
             {
-                Console.WriteLine($"Broadcasting message from Sensor {message.SensorId}: {message.Measurement}");
-
                 var sensorsToRemove = new List<int>();
 
                 foreach (var sensor in _sensorCallbacks)
@@ -67,11 +65,6 @@ namespace SensorService
                     _sensorCallbacks.Remove(sensorId);
                 }
             }
-        }
-
-        public void AcknowledgeMessage(Guid messageId, int sensorId)
-        {
-            Console.WriteLine($"Sensor {sensorId} acknowledged message {messageId}");
         }
     }
 }

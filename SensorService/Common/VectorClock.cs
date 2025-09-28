@@ -31,7 +31,7 @@ namespace Common
 
         public int GetTime(int sensorId)
         {
-            return _clock.ContainsKey(sensorId) ? _clock[sensorId] : 0;
+            return _clock.ContainsKey(sensorId) ? _clock[sensorId] : -1;
         }
 
         public void Update(int sensorId, int time)
