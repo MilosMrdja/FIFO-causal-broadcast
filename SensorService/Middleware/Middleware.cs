@@ -58,6 +58,13 @@ namespace Middleware
                     return;
                 }
 
+                if (!IsCausalReady(message))
+                {
+                    Console.WriteLine($"Causal condition not satisfied for message {message.Id}");
+                    _messageBuffers[message.SensorId].Enqueue(message);
+                    return;
+                }
+
                 DeliverMessage(message);
                 CheckAllBufferedMessages();
             }
@@ -71,16 +78,25 @@ namespace Middleware
 
         private void EnsureSensorInitialized(int sensorId, VectorClock incomingClock, int sequenceNumber)
         {
-            // Ako nemamo buffer za senzor – dodaj ga
-            if (!_messageBuffers.ContainsKey(sensorId))
+            foreach (var id in incomingClock.GetSensorIds())
             {
-                _messageBuffers[sensorId] = new Queue<Message>();
-            }
+                if (!_messageBuffers.ContainsKey(id))
+                {
+                    _messageBuffers[sensorId] = new Queue<Message>();
+                }
 
-            // Ako clock nema entry za senzor – dodaj ga
-            if (_deliveredClock.GetTime(sensorId) == -1)
-            {
-                _deliveredClock.Update(sensorId, sequenceNumber - 1);
+                if (_deliveredClock.GetTime(id) == -1)
+                {
+                    if (id == sensorId)
+                    {
+                        _deliveredClock.Update(id, sequenceNumber - 1);
+
+                    }
+                    else
+                    {
+                        _deliveredClock.Update(id, incomingClock.GetTime(id));
+                    }
+                }
             }
         }
 
@@ -121,7 +137,7 @@ namespace Middleware
 
                     var message = sensorBuffer.Value.Peek();
 
-                    if (IsFIFOReady(message))
+                    if (IsFIFOReady(message) && IsCausalReady(message))
                     {
                         sensorBuffer.Value.Dequeue();
                         DeliverMessage(message);
@@ -130,6 +146,26 @@ namespace Middleware
                     }
                 }
             } while (deliveredAny);
+        }
+
+        private bool IsCausalReady(Message message)
+        {
+            foreach (var sensorId in message.VectorClock.GetSensorIds())
+            {
+
+                int required = message.VectorClock.GetTime(sensorId);
+                int delivered = _deliveredClock.GetTime(sensorId);
+
+                if (delivered == -1) delivered = required - 1;
+
+
+                if (sensorId != message.SensorId && delivered < required)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }
