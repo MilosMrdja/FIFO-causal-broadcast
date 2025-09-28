@@ -15,8 +15,5 @@ namespace SensorService
 
         [OperationContract(IsOneWay = true)]
         void BroadcastMeasurement(Message message);
-
-        [OperationContract(IsOneWay = true)]
-        void AcknowledgeMessage(Guid messageId, int sensorId);
     }
 }
